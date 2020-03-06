@@ -50,6 +50,7 @@ import React, { Component } from 'react';
 import buildGraphQLProvider from 'ra-data-graphql';
 import { Admin, Resource, Delete } from 'react-admin';
 
+import buildQuery from './buildQuery'; // see Specify your queries and mutations section below
 import { PostCreate, PostEdit, PostList } from '../components/admin/posts';
 
 class App extends Component {
@@ -58,7 +59,7 @@ class App extends Component {
         this.state = { dataProvider: null };
     }
     componentDidMount() {
-        buildGraphQLProvider()
+        buildGraphQLProvider({ buildQuery })
             .then(dataProvider => this.setState({ dataProvider }));
     }
 
@@ -98,7 +99,7 @@ buildGraphQLProvider({
 });
 ```
 
-You can pass any options supported by the [ApolloClient](http://dev.apollodata.com/core/apollo-client-api.html#apollo-client) contructor with the addition of `uri` which can be specified so that we create the network interface for you.
+You can pass any options supported by the [ApolloClient](http://dev.apollodata.com/core/apollo-client-api.html#apollo-client) constructor with the addition of `uri` which can be specified so that we create the network interface for you.
 
 You can also supply your own [ApolloClient](http://dev.apollodata.com/core/apollo-client-api.html#apollo-client) instance directly with:
 
@@ -110,7 +111,7 @@ buildGraphQLProvider({ client: myClient });
 
 Instead of running an introspection query you can also provide the introspection query result directly. This speeds up the initial rendering of the `Admin` component as it no longer has to wait for the introspection query request to resolve.
 
-```jsx
+```js
 import { __schema as schema } from './schema';
 
 buildGraphQLProvider({
@@ -118,19 +119,19 @@ buildGraphQLProvider({
 });
 ```
 
-The `./schema` file is a `schema.json` in `./scr` retrieved with [`get-graphql-schema --json <graphql_endpoint>`](https://github.com/graphcool/get-graphql-schema).
+The `./schema` file is a `schema.json` in `./src` retrieved with [`get-graphql-schema --json <graphql_endpoint>`](https://github.com/graphcool/get-graphql-schema).
 
 > Note: Importing the `schema.json` file will significantly increase the bundle size.
 
 ## Specify your queries and mutations
 
-For the provider to know how to map react-admin request to apollo queries and mutations, you must provide a `queryBuilder` option. The `queryBuilder` is a factory function which will be called with the introspection query result.
+For the provider to know how to map react-admin request to apollo queries and mutations, you must provide a `buildQuery` option. The `buildQuery` is a factory function which will be called with the introspection query result.
 
 The introspection result is an object with 4 properties:
 
 - `types`: an array of all the GraphQL types discovered on your endpoint
 - `queries`: an array of all the GraphQL queries and mutations discovered on your endpoint
-- `resources`: an array of objects with a `type` property, which is the GraphQL type for this resource, and a property for each react-admin fetch verb for which we found a matching query or mutation
+- `resources`: an array of objects with a `type` property, which is the GraphQL type for this resource, and a property for each react-admin fetch verb for which we found a matching query or mutation
 - `schema`: the full schema
 
 For example:
@@ -184,9 +185,9 @@ For example:
 }
 ```
 
-The `queryBuilder` function must return a function which will be called with the same parameters as the react-admin data provider but must return an object matching the `options` of the ApolloClient [query](http://dev.apollodata.com/core/apollo-client-api.html#ApolloClient.query) method with an additional `parseResponse` function.
+The `buildQuery` function must return a function which will be called with the same parameters as the react-admin data provider, but must return an object matching the `options` of the ApolloClient [query](http://dev.apollodata.com/core/apollo-client-api.html#ApolloClient.query) method with an additional `parseResponse` function.
 
-This `parseResponse` function will be called with an [ApolloQueryResult](http://dev.apollodata.com/core/apollo-client-api.html#ApolloQueryResult) and must returns the data expected by react-admin.
+This `parseResponse` function will be called with an [ApolloQueryResult](http://dev.apollodata.com/core/apollo-client-api.html#ApolloQueryResult) and must return the data expected by react-admin.
 
 For example:
 

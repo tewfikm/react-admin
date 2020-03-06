@@ -13,20 +13,24 @@ export default url => ({
         pageNumber: n => `.page-number[data-page='${n - 1}']`,
         previousPage: '.previous-page',
         recordRows: '.datagrid-body tr',
-        viewsColumn: '.datagrid-body tr td:nth-child(6)',
+        viewsColumn: '.datagrid-body tr td:nth-child(7)',
         datagridHeaders: 'th',
+        sortBy: name => `th span[data-sort="${name}"]`,
+        svg: (name, criteria = '') =>
+            `th span[data-sort="${name}"] svg${criteria}`,
         logout: '.logout',
         bulkActionsToolbar: '[data-test=bulk-actions-toolbar]',
         customBulkActionsButton:
             '[data-test=bulk-actions-toolbar] button:first-child',
         deleteBulkActionsButton:
-            '[data-test=bulk-actions-toolbar] button:last-child',
+            '[data-test=bulk-actions-toolbar] button:nth-child(2)',
         selectAll: '.select-all',
         selectedItem: '.select-item input:checked',
         selectItem: '.select-item input',
         userMenu: 'button[title="Profile"]',
         title: '#react-admin-title',
-        headroom: '.headroom',
+        headroomUnfixed: '.headroom--unfixed',
+        headroomUnpinned: '.headroom--unpinned',
     },
 
     navigate() {
@@ -46,15 +50,15 @@ export default url => ({
     },
 
     nextPage() {
-        cy.get(this.elements.nextPage).click();
+        cy.get(this.elements.nextPage).click({ force: true });
     },
 
     previousPage() {
-        cy.get(this.elements.previousPage).click();
+        cy.get(this.elements.previousPage).click({ force: true });
     },
 
     goToPage(n) {
-        return cy.get(this.elements.pageNumber(n)).click();
+        return cy.get(this.elements.pageNumber(n)).click({ force: true });
     },
 
     setFilterValue(name, value, clearPreviousValue = true) {
@@ -100,5 +104,9 @@ export default url => ({
 
     applyDeleteBulkAction() {
         cy.get(this.elements.deleteBulkActionsButton).click();
+    },
+
+    toggleColumnSort(name) {
+        cy.get(this.elements.sortBy(name)).click();
     },
 });

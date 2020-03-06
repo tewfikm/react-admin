@@ -6,6 +6,8 @@ lib
 esm
 es6
 docs/_site/
+docs/.jekyll-metadata
+docs/.jekyll-cache
 packages/react-admin/docs
 examples/**/static
 examples/**/dist

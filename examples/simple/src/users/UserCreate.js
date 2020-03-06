@@ -11,7 +11,16 @@ import {
     required,
 } from 'react-admin';
 
-const UserEditToolbar = ({ permissions, ...props }) => (
+import Aside from './Aside';
+
+const UserEditToolbar = ({
+    permissions,
+    hasList,
+    hasEdit,
+    hasShow,
+    hasCreate,
+    ...props
+}) => (
     <Toolbar {...props}>
         <SaveButton
             label="user.action.save_and_show"
@@ -23,19 +32,22 @@ const UserEditToolbar = ({ permissions, ...props }) => (
                 label="user.action.save_and_add"
                 redirect={false}
                 submitOnEnter={false}
-                variant="flat"
+                variant="text"
             />
         )}
     </Toolbar>
 );
 
 const UserCreate = ({ permissions, ...props }) => (
-    <Create {...props}>
-        <TabbedForm toolbar={<UserEditToolbar permissions={permissions} />}>
+    <Create {...props} aside={<Aside />}>
+        <TabbedForm
+            toolbar={<UserEditToolbar permissions={permissions} {...props} />}
+        >
             <FormTab label="user.form.summary" path="">
                 <TextInput
                     source="name"
                     defaultValue="Slim Shady"
+                    autoFocus
                     validate={required()}
                 />
             </FormTab>

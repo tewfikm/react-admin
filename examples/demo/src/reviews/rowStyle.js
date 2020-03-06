@@ -1,11 +1,37 @@
-const rowStyle = (record, index, defaultStyle = {}) => {
+import green from '@material-ui/core/colors/green';
+import orange from '@material-ui/core/colors/orange';
+import red from '@material-ui/core/colors/red';
+
+const rowStyle = (selectedRow, theme) => (record, index, defaultStyle = {}) => {
+    let style = defaultStyle;
+    if (selectedRow === record.id) {
+        style = {
+            ...style,
+            backgroundColor: theme.palette.action.selected,
+        };
+    }
     if (record.status === 'accepted')
-        return { ...defaultStyle, backgroundColor: '#dfd' };
+        return {
+            ...style,
+            borderLeftColor: green[500],
+            borderLeftWidth: 5,
+            borderLeftStyle: 'solid',
+        };
     if (record.status === 'pending')
-        return { ...defaultStyle, backgroundColor: '#ffd' };
+        return {
+            ...style,
+            borderLeftColor: orange[500],
+            borderLeftWidth: 5,
+            borderLeftStyle: 'solid',
+        };
     if (record.status === 'rejected')
-        return { ...defaultStyle, backgroundColor: '#fdd' };
-    return defaultStyle;
+        return {
+            ...style,
+            borderLeftColor: red[500],
+            borderLeftWidth: 5,
+            borderLeftStyle: 'solid',
+        };
+    return style;
 };
 
 export default rowStyle;

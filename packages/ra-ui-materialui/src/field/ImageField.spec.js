@@ -1,37 +1,54 @@
 import React from 'react';
-import assert from 'assert';
-import { shallow } from 'enzyme';
-import { ImageField } from './ImageField';
+import expect from 'expect';
+import { render, cleanup } from '@testing-library/react';
+import ImageField from './ImageField';
+
+const defaultProps = {
+    classes: {},
+    source: 'url',
+};
 
 describe('<ImageField />', () => {
+    afterEach(cleanup);
+
     it('should return an empty div when record is not set', () => {
-        assert.equal(
-            shallow(<ImageField source="url" />).html(),
-            '<div></div>'
+        const { container } = render(<ImageField {...defaultProps} />);
+        expect(container.firstChild.textContent).toEqual('');
+    });
+
+    it('should render the emptyText when record has no value', () => {
+        const { queryByText } = render(
+            <ImageField
+                record={{ url: null }}
+                emptyText="NA"
+                {...defaultProps}
+            />
         );
+        expect(queryByText('NA')).not.toBeNull();
     });
 
     it('should render an image with correct attributes based on `source` and `title`', () => {
-        const wrapper = shallow(
+        const { getByRole } = render(
             <ImageField
+                {...defaultProps}
                 record={{
                     url: 'http://foo.com/bar.jpg',
                     title: 'Hello world!',
                 }}
-                source="url"
                 title="title"
             />
         );
 
-        const img = wrapper.find('img');
-        assert.equal(img.prop('src'), 'http://foo.com/bar.jpg');
-        assert.equal(img.prop('alt'), 'Hello world!');
-        assert.equal(img.prop('title'), 'Hello world!');
+        const img = getByRole('img');
+        expect(img.src).toEqual('http://foo.com/bar.jpg');
+        expect(img.alt).toEqual('Hello world!');
+        expect(img.title).toEqual('Hello world!');
     });
 
     it('should support deep linking', () => {
-        const wrapper = shallow(
+        const { getByRole } = render(
             <ImageField
+                {...defaultProps}
                 record={{
                     picture: {
                         url: 'http://foo.com/bar.jpg',
@@ -43,31 +60,32 @@ describe('<ImageField />', () => {
             />
         );
 
-        const img = wrapper.find('img');
-        assert.equal(img.prop('src'), 'http://foo.com/bar.jpg');
-        assert.equal(img.prop('alt'), 'Hello world!');
-        assert.equal(img.prop('title'), 'Hello world!');
+        const img = getByRole('img');
+        expect(img.src).toEqual('http://foo.com/bar.jpg');
+        expect(img.alt).toEqual('Hello world!');
+        expect(img.title).toEqual('Hello world!');
     });
 
     it('should allow setting static string as title', () => {
-        const wrapper = shallow(
+        const { getByRole } = render(
             <ImageField
+                {...defaultProps}
                 record={{
                     url: 'http://foo.com/bar.jpg',
                 }}
-                source="url"
                 title="Hello world!"
             />
         );
 
-        const img = wrapper.find('img');
-        assert.equal(img.prop('alt'), 'Hello world!');
-        assert.equal(img.prop('title'), 'Hello world!');
+        const img = getByRole('img');
+        expect(img.alt).toEqual('Hello world!');
+        expect(img.title).toEqual('Hello world!');
     });
 
     it('should render a list of images with correct attributes based on `src` and `title`', () => {
-        const wrapper = shallow(
+        const { queryAllByRole } = render(
             <ImageField
+                {...defaultProps}
                 record={{
                     pictures: [
                         {
@@ -86,24 +104,25 @@ describe('<ImageField />', () => {
             />
         );
 
-        const imgs = wrapper.find('img');
-        assert.equal(imgs.at(0).prop('src'), 'http://foo.com/bar.jpg');
-        assert.equal(imgs.at(0).prop('alt'), 'Hello world!');
-        assert.equal(imgs.at(0).prop('title'), 'Hello world!');
-        assert.equal(imgs.at(1).prop('src'), 'http://bar.com/foo.jpg');
-        assert.equal(imgs.at(1).prop('alt'), 'Bye world!');
-        assert.equal(imgs.at(1).prop('title'), 'Bye world!');
+        const imgs = queryAllByRole('img');
+        expect(imgs[0].src).toEqual('http://foo.com/bar.jpg');
+        expect(imgs[0].alt).toEqual('Hello world!');
+        expect(imgs[0].title).toEqual('Hello world!');
+        expect(imgs[1].src).toEqual('http://bar.com/foo.jpg');
+        expect(imgs[1].alt).toEqual('Bye world!');
+        expect(imgs[1].title).toEqual('Bye world!');
     });
 
-    it('should use custom className', () =>
-        assert.deepEqual(
-            shallow(
-                <ImageField
-                    source="foo"
-                    record={{ foo: true }}
-                    className="foo"
-                />
-            ).prop('className'),
-            'foo'
-        ));
+    it('should use custom className', () => {
+        const { container } = render(
+            <ImageField
+                {...defaultProps}
+                source="foo"
+                record={{ foo: 'http://example.com' }}
+                className="foo"
+            />
+        );
+
+        expect(container.firstChild.classList.contains('foo')).toBe(true);
+    });
 });

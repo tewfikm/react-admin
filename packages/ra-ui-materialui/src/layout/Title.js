@@ -1,21 +1,17 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React, { cloneElement } from 'react';
+import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
-import { translate } from 'ra-core';
+import { useTranslate, warning } from 'ra-core';
 
-const Title = ({
-    className,
-    defaultTitle,
-    record,
-    title,
-    translate,
-    ...rest
-}) => {
-    const container = document.getElementById('react-admin-title');
+const Title = ({ className, defaultTitle, locale, record, title, ...rest }) => {
+    const translate = useTranslate();
+    const container =
+        typeof document !== 'undefined'
+            ? document.getElementById('react-admin-title')
+            : null;
     if (!container) return null;
-    if (!defaultTitle && !title && process.env.NODE_ENV !== 'production') {
-        console.warn('Missing title prop in <Title> element'); //eslint-disable-line no-console
-    }
+    warning(!defaultTitle && !title, 'Missing title prop in <Title> element');
+
     const titleElement = !title ? (
         <span className={className} {...rest}>
             {defaultTitle}
@@ -25,17 +21,22 @@ const Title = ({
             {translate(title, { _: title })}
         </span>
     ) : (
-        React.cloneElement(title, { className, record, ...rest })
+        cloneElement(title, { className, record, ...rest })
     );
-    return ReactDOM.createPortal(titleElement, container);
+    return createPortal(titleElement, container);
 };
+
+export const TitlePropType = PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.element,
+]);
 
 Title.propTypes = {
     defaultTitle: PropTypes.string,
     className: PropTypes.string,
+    locale: PropTypes.string,
     record: PropTypes.object,
-    translate: PropTypes.func.isRequired,
-    title: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
+    title: TitlePropType,
 };
 
-export default translate(Title);
+export default Title;

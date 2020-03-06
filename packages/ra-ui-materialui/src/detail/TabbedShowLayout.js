@@ -1,12 +1,12 @@
-import React, { Component, Children, cloneElement } from 'react';
+import React, { Children, cloneElement, isValidElement } from 'react';
 import PropTypes from 'prop-types';
-import Tabs from '@material-ui/core/Tabs';
 import Divider from '@material-ui/core/Divider';
-import { withRouter, Route } from 'react-router-dom';
-import compose from 'recompose/compose';
-import { translate } from 'ra-core';
+import { Route } from 'react-router-dom';
+import { makeStyles } from '@material-ui/core/styles';
+import { useRouteMatch } from 'react-router-dom';
+import { escapePath } from 'ra-core';
 
-import CardContentInner from '../layout/CardContentInner';
+import TabbedShowLayoutTabs, { getTabFullPath } from './TabbedShowLayoutTabs';
 
 const sanitizeRestProps = ({
     children,
@@ -18,19 +18,27 @@ const sanitizeRestProps = ({
     initialValues,
     staticContext,
     translate,
+    tabs,
     ...rest
 }) => rest;
 
-const getTabFullPath = (tab, index, baseUrl) =>
-    `${baseUrl}${
-        tab.props.path ? `/${tab.props.path}` : index > 0 ? `/${index}` : ''
-    }`;
+const useStyles = makeStyles(
+    theme => ({
+        content: {
+            paddingTop: theme.spacing(1),
+            paddingLeft: theme.spacing(2),
+            paddingRight: theme.spacing(2),
+        },
+    }),
+    { name: 'RaTabbedShowLayout' }
+);
 
 /**
  * Tabbed Layout for a Show view, showing fields grouped in tabs.
  *
  * Receives the current `record` from the parent `<Show>` component,
  * and passes it to its childen. Children should be Tab components.
+ * The component passed as `tabs` props replaces the default material-ui's <Tabs> component.
  *
  * @example
  *     // in src/posts.js
@@ -64,74 +72,49 @@ const getTabFullPath = (tab, index, baseUrl) =>
  *     );
  *     export default App;
  */
-export class TabbedShowLayout extends Component {
-    render() {
-        const {
-            basePath,
-            children,
-            className,
-            location,
-            match,
-            record,
-            resource,
-            translate,
-            version,
-            value,
-            ...rest
-        } = this.props;
+const TabbedShowLayout = ({
+    basePath,
+    children,
+    classes: classesOverride,
+    className,
+    record,
+    resource,
+    version,
+    value,
+    tabs,
+    ...rest
+}) => {
+    const match = useRouteMatch();
 
-        return (
-            <div
-                className={className}
-                key={version}
-                {...sanitizeRestProps(rest)}
-            >
-                <Tabs
-                    // The location pathname will contain the page path including the current tab path
-                    // so we can use it as a way to determine the current tab
-                    value={location.pathname}
-                    indicatorColor="primary"
-                >
-                    {Children.map(children, (tab, index) => {
-                        if (!tab) return null;
+    const classes = useStyles({ classes: classesOverride });
+    return (
+        <div className={className} key={version} {...sanitizeRestProps(rest)}>
+            {cloneElement(tabs, {}, children)}
 
-                        // Builds the full tab tab which is the concatenation of the last matched route in the
-                        // TabbedShowLayout hierarchy (ex: '/posts/create', '/posts/12', , '/posts/12/show')
-                        // and the tab path.
-                        // This will be used as the Tab's value
-                        const tabPath = getTabFullPath(tab, index, match.url);
-
-                        return cloneElement(tab, {
-                            context: 'header',
-                            value: tabPath,
-                        });
-                    })}
-                </Tabs>
-                <Divider />
-                <CardContentInner>
-                    {Children.map(
-                        children,
-                        (tab, index) =>
-                            tab && (
-                                <Route
-                                    exact
-                                    path={getTabFullPath(tab, index, match.url)}
-                                    render={() =>
-                                        cloneElement(tab, {
-                                            context: 'content',
-                                            resource,
-                                            record,
-                                            basePath,
-                                        })
-                                    }
-                                />
-                            )
-                    )}
-                </CardContentInner>
+            <Divider />
+            <div className={classes.content}>
+                {Children.map(children, (tab, index) =>
+                    tab && isValidElement(tab) ? (
+                        <Route
+                            exact
+                            path={escapePath(
+                                getTabFullPath(tab, index, match.url)
+                            )}
+                            render={() =>
+                                cloneElement(tab, {
+                                    context: 'content',
+                                    resource,
+                                    record,
+                                    basePath,
+                                })
+                            }
+                        />
+                    ) : null
+                )}
             </div>
-        );
-    }
-}
+        </div>
+    );
+};
 
 TabbedShowLayout.propTypes = {
     children: PropTypes.node,
@@ -143,12 +126,11 @@ TabbedShowLayout.propTypes = {
     basePath: PropTypes.string,
     value: PropTypes.number,
     version: PropTypes.number,
-    translate: PropTypes.func,
+    tabs: PropTypes.element,
 };
 
-const enhance = compose(
-    withRouter,
-    translate
-);
+TabbedShowLayout.defaultProps = {
+    tabs: <TabbedShowLayoutTabs />,
+};
 
-export default enhance(TabbedShowLayout);
+export default TabbedShowLayout;

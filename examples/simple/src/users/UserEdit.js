@@ -2,21 +2,70 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    DisabledInput,
+    CloneButton,
+    DeleteWithConfirmButton,
     Edit,
     FormTab,
+    required,
+    SaveButton,
     SelectInput,
+    ShowButton,
     TabbedForm,
     TextInput,
-    required,
+    Toolbar,
+    TopToolbar,
 } from 'react-admin';
+import { makeStyles } from '@material-ui/core/styles';
+
 import UserTitle from './UserTitle';
+import Aside from './Aside';
+
+const useToolbarStyles = makeStyles({
+    toolbar: {
+        display: 'flex',
+        justifyContent: 'space-between',
+    },
+});
+
+/**
+ * Custom Toolbar for the Edit form
+ *
+ * Save with undo, but delete with confirm
+ */
+const UserEditToolbar = props => {
+    const classes = useToolbarStyles();
+    return (
+        <Toolbar {...props} classes={classes}>
+            <SaveButton />
+            <DeleteWithConfirmButton />
+        </Toolbar>
+    );
+};
+
+const EditActions = ({ basePath, data, hasShow }) => (
+    <TopToolbar>
+        <CloneButton
+            className="button-clone"
+            basePath={basePath}
+            record={data}
+        />
+        <ShowButton basePath={basePath} record={data} />
+    </TopToolbar>
+);
 
 const UserEdit = ({ permissions, ...props }) => (
-    <Edit title={<UserTitle />} {...props}>
-        <TabbedForm defaultValue={{ role: 'user' }}>
+    <Edit
+        title={<UserTitle />}
+        aside={<Aside />}
+        actions={<EditActions />}
+        {...props}
+    >
+        <TabbedForm
+            defaultValue={{ role: 'user' }}
+            toolbar={<UserEditToolbar />}
+        >
             <FormTab label="user.form.summary" path="">
-                {permissions === 'admin' && <DisabledInput source="id" />}
+                {permissions === 'admin' && <TextInput disabled source="id" />}
                 <TextInput
                     source="name"
                     defaultValue="slim shady"

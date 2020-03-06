@@ -1,51 +1,96 @@
 import React from 'react';
-import assert from 'assert';
-import { shallow } from 'enzyme';
+import expect from 'expect';
 import { BooleanField } from './BooleanField';
+import { render, cleanup } from '@testing-library/react';
+
+const defaultProps = {
+    record: { published: true },
+    source: 'published',
+    resource: 'posts',
+    classes: {},
+};
 
 describe('<BooleanField />', () => {
-    it('should display tick if value is true', () => {
-        const wrapper = shallow(
-            <BooleanField record={{ published: true }} source="published" />
-        );
-        assert.ok(wrapper.first().is('WithStyles(Typography)'));
-        assert.equal(wrapper.first().find('pure(Done)').length, 1);
+    afterEach(cleanup);
+    it('should display tick and truthy text if value is true', () => {
+        const { queryByTitle } = render(<BooleanField {...defaultProps} />);
+        expect(queryByTitle('ra.boolean.true')).not.toBeNull();
+        expect(queryByTitle('ra.boolean.true').dataset.testid).toBe('true');
+        expect(queryByTitle('ra.boolean.false')).toBeNull();
     });
 
-    it('should display cross if value is false', () => {
-        const wrapper = shallow(
-            <BooleanField record={{ published: false }} source="published" />
+    it('should use valueLabelTrue for custom truthy text', () => {
+        const { queryByTitle } = render(
+            <BooleanField
+                {...defaultProps}
+                valueLabelTrue="Has been published"
+            />
         );
+        expect(queryByTitle('ra.boolean.true')).toBeNull();
+        expect(queryByTitle('Has been published')).not.toBeNull();
+    });
 
-        assert.ok(wrapper.first().is('WithStyles(Typography)'));
-        assert.equal(wrapper.first().find('pure(Clear)').length, 1);
+    it('should display cross and falsy text if value is false', () => {
+        const { queryByTitle } = render(
+            <BooleanField {...defaultProps} record={{ published: false }} />
+        );
+        expect(queryByTitle('ra.boolean.true')).toBeNull();
+        expect(queryByTitle('ra.boolean.false')).not.toBeNull();
+        expect(queryByTitle('ra.boolean.false').dataset.testid).toBe('false');
+    });
+
+    it('should use valueLabelFalse for custom falsy text', () => {
+        const { queryByTitle } = render(
+            <BooleanField
+                {...defaultProps}
+                record={{ published: false }}
+                valueLabelFalse="Has not been published"
+            />
+        );
+        expect(queryByTitle('ra.boolean.false')).toBeNull();
+        expect(queryByTitle('Has not been published')).not.toBeNull();
     });
 
     it('should not display anything if value is null', () => {
-        const wrapper = shallow(
-            <BooleanField record={{ published: null }} source="published" />
+        const { queryByTitle } = render(
+            <BooleanField {...defaultProps} record={{ published: null }} />
         );
-
-        assert.equal(wrapper.first().children().length, 0);
+        expect(queryByTitle('ra.boolean.true')).toBeNull();
+        expect(queryByTitle('ra.boolean.false')).toBeNull();
     });
 
-    it('should use custom className', () =>
-        assert.deepEqual(
-            shallow(
-                <BooleanField
-                    record={{ foo: true }}
-                    source="foo"
-                    className="foo"
-                />
-            ).prop('className'),
-            'foo'
-        ));
+    it('should display the emptyText when is present and the value is null', () => {
+        const { queryByTitle, queryByText } = render(
+            <BooleanField
+                {...defaultProps}
+                record={{ published: null }}
+                emptyText="NA"
+            />
+        );
+        expect(queryByTitle('ra.boolean.true')).toBeNull();
+        expect(queryByTitle('ra.boolean.false')).toBeNull();
+        expect(queryByText('NA')).not.toBeNull();
+    });
+
+    it('should use custom className', () => {
+        const { container } = render(
+            <BooleanField
+                {...defaultProps}
+                record={{ foo: true }}
+                className="foo"
+            />
+        );
+        expect(container.firstChild.classList.contains('foo')).toBe(true);
+    });
 
     it('should handle deep fields', () => {
-        const wrapper = shallow(
-            <BooleanField record={{ foo: { bar: true } }} source="foo.bar" />
+        const { queryByTitle } = render(
+            <BooleanField
+                {...defaultProps}
+                record={{ foo: { bar: true } }}
+                source="foo.bar"
+            />
         );
-        assert.ok(wrapper.first().is('WithStyles(Typography)'));
-        assert.equal(wrapper.first().find('pure(Done)').length, 1);
+        expect(queryByTitle('ra.boolean.true')).not.toBeNull();
     });
 });

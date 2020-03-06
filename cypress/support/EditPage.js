@@ -2,14 +2,21 @@ export default url => ({
     elements: {
         body: 'body',
         deleteButton: '.ra-delete-button',
-        input: name => `.edit-page [name='${name}']`,
+        input: (name, type = 'input') => {
+            if (type === 'rich-text-input') {
+                return `.ra-input-${name} .ql-editor`;
+            }
+            return `.edit-page [name='${name}']`;
+        },
         inputs: `.ra-input`,
         tabs: `.form-tab`,
-        snackbar: 'div[role="alertdialog"]',
-        submitButton: ".edit-page button[type='submit']",
+        snackbar: 'div[role="alert"]',
+        submitButton: ".edit-page div[role='toolbar'] button[type='submit']",
         cloneButton: '.button-clone',
         tab: index => `.form-tab:nth-of-type(${index})`,
         title: '#react-admin-title',
+        userMenu: 'button[title="Profile"]',
+        logout: '.logout',
     },
 
     navigate() {
@@ -20,11 +27,14 @@ export default url => ({
         return cy.get(this.elements.title);
     },
 
-    setInputValue(name, value, clearPreviousValue = true) {
+    setInputValue(type, name, value, clearPreviousValue = true) {
         if (clearPreviousValue) {
             cy.get(this.elements.input(name)).clear();
         }
-        return cy.get(this.elements.input(name)).type(value);
+        cy.get(this.elements.input(name)).type(value);
+        if (type === 'rich-text-input') {
+            cy.wait(500);
+        }
     },
 
     clickInput(name) {
@@ -48,5 +58,10 @@ export default url => ({
 
     clone() {
         cy.get(this.elements.cloneButton).click();
+    },
+
+    logout() {
+        cy.get(this.elements.userMenu).click();
+        cy.get(this.elements.logout).click();
     },
 });

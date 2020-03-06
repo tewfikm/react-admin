@@ -9,7 +9,7 @@ import {
     CREATE,
     UPDATE,
     DELETE,
-} from 'react-admin';
+} from 'ra-core';
 
 import buildApolloClient from './buildApolloClient';
 import {
@@ -59,7 +59,8 @@ export default async options => {
     } = merge({}, defaultOptions, options);
 
     if (override && process.env.NODE_ENV === 'production') {
-        console.warn( // eslint-disable-line
+        console.warn(
+            // eslint-disable-line
             'The override option is deprecated. You should instead wrap the buildQuery function provided by the dataProvider you use.'
         );
     }
@@ -77,26 +78,30 @@ export default async options => {
     const buildQuery = buildQueryFactory(introspectionResults, otherOptions);
 
     const raDataProvider = (aorFetchType, resource, params) => {
-        const overridedbuildQuery = get(
+        const overriddenBuildQuery = get(
             override,
             `${resource}.${aorFetchType}`
         );
 
-        const { parseResponse, ...query } = overridedbuildQuery
+        const { parseResponse, ...query } = overriddenBuildQuery
             ? {
                   ...buildQuery(aorFetchType, resource, params),
-                  ...overridedbuildQuery(params),
+                  ...overriddenBuildQuery(params),
               }
             : buildQuery(aorFetchType, resource, params);
 
-        if (QUERY_TYPES.includes(aorFetchType)) {
+        const operation = getQueryOperation(query.query);
+
+        if (operation === 'query') {
             const apolloQuery = {
                 ...query,
                 fetchPolicy: 'network-only',
                 ...getOptions(otherOptions.query, aorFetchType, resource),
             };
 
-            return client.query(apolloQuery).then(parseResponse);
+            return client
+                .query(apolloQuery)
+                .then(response => parseResponse(response));
         }
 
         const apolloQuery = {
@@ -126,4 +131,12 @@ export default async options => {
     raDataProvider.saga = () => {};
 
     return raDataProvider;
+};
+
+const getQueryOperation = query => {
+    if (query && query.definitions && query.definitions.length > 0) {
+        return query.definitions[0].operation;
+    }
+
+    throw new Error('Unable to determine the query operation');
 };

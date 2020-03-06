@@ -29,6 +29,11 @@ export default {
                 demo_button: 'Code source de cette démo',
             },
         },
+        menu: {
+            sales: 'Ventes',
+            catalog: 'Catalogue',
+            customers: 'Clients',
+        },
     },
     resources: {
         customers: {
@@ -50,20 +55,29 @@ export default {
                 name: 'Nom',
                 total_spent: 'Dépenses',
                 zipcode: 'Code postal',
+                password: 'Mot de passe',
+                confirm_password: 'Confirmez le mot de passe',
             },
-            tabs: {
+            fieldGroups: {
                 identity: 'Identité',
                 address: 'Adresse',
-                orders: 'Commandes',
-                reviews: 'Commentaires',
                 stats: 'Statistiques',
+                history: 'Historique',
+                password: 'Mot de passe',
+                change_password: 'Changer le mot de passe',
             },
             page: {
                 delete: 'Supprimer le client',
             },
+            errors: {
+                password_mismatch:
+                    'La confirmation du mot de passe est différent du mot de passe.',
+            },
         },
         commands: {
             name: 'Commande |||| Commandes',
+            amount: '1 commande |||| %{smart_count} commandes',
+            title: 'Commande n°%{reference}',
             fields: {
                 basket: {
                     delivery: 'Frais de livraison',
@@ -75,13 +89,28 @@ export default {
                     unit_price: 'P.U.',
                 },
                 customer_id: 'Client',
-                date_gte: 'Passées depuis',
-                date_lte: 'Passées avant',
+                date_gte: 'Emises depuis',
+                date_lte: 'Emises avant',
                 nb_items: 'Nb articles',
                 reference: 'Référence',
                 returned: 'Annulée',
                 status: 'Etat',
                 total_gte: 'Montant minimum',
+            },
+        },
+        invoices: {
+            name: 'Facture |||| Factures',
+            fields: {
+                id: 'Numéro',
+                date: 'Date de facture',
+                customer_id: 'Client',
+                command_id: 'Commande',
+                date_gte: 'Emises depuis',
+                date_lte: 'Emises avant',
+                address: 'Adresse',
+                total_ex_taxes: 'Montant HT',
+                delivery_fees: 'Frais de livraison',
+                taxes: 'TVA',
             },
         },
         products: {
@@ -117,6 +146,9 @@ export default {
         },
         reviews: {
             name: 'Commentaire |||| Commentaires',
+            amount: '1 commentaire |||| %{smart_count} commentaires',
+            relative_to_poster: 'Commentaire sur',
+            detail: 'Détail du commentaire',
             fields: {
                 customer_id: 'Client',
                 command_id: 'Commande',

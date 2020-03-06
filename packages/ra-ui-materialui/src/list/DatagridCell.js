@@ -15,7 +15,7 @@ const sanitizeRestProps = ({
     ...rest
 }) => rest;
 
-export const DatagridCell = ({
+const DatagridCell = ({
     className,
     field,
     record,
@@ -25,8 +25,7 @@ export const DatagridCell = ({
 }) => (
     <TableCell
         className={classnames(className, field.props.cellClassName)}
-        numeric={field.props.textAlign === 'right'}
-        padding="none"
+        align={field.props.textAlign}
         {...sanitizeRestProps(rest)}
     >
         {React.cloneElement(field, {
@@ -44,5 +43,8 @@ DatagridCell.propTypes = {
     basePath: PropTypes.string,
     resource: PropTypes.string,
 };
+
+// wat? TypeScript looses the displayName if we don't set it explicitly
+DatagridCell.displayName = 'DatagridCell';
 
 export default DatagridCell;
